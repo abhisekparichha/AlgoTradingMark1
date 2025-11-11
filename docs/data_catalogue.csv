@@ -1,0 +1,25 @@
+source,category,cadence,endpoint,method,field_name,field_datatype,field_description,notes
+Zerodha Kite Connect,Market - Live,Real-time streaming + historical,https://api.kite.trade,REST + WebSocket,timestamp,datetime,Event timestamp in IST (store also UTC),"Includes LTP, OHLCV, depth"
+Zerodha Kite Connect,Market - Live,Real-time streaming + historical,https://api.kite.trade,REST + WebSocket,symbol,string,Trading symbol,
+Zerodha Kite Connect,Market - Live,Real-time streaming + historical,https://api.kite.trade,REST + WebSocket,open,float,Open price,
+Zerodha Kite Connect,Market - Live,Real-time streaming + historical,https://api.kite.trade,REST + WebSocket,high,float,High price,
+Zerodha Kite Connect,Market - Live,Real-time streaming + historical,https://api.kite.trade,REST + WebSocket,low,float,Low price,
+Zerodha Kite Connect,Market - Live,Real-time streaming + historical,https://api.kite.trade,REST + WebSocket,close,float,Close price,
+Zerodha Kite Connect,Market - Live,Real-time streaming + historical,https://api.kite.trade,REST + WebSocket,volume,float,Volume traded,
+NSE Bhavcopy,Market - Daily EOD,Daily,https://www.nseindia.com/api/,HTTP CSV,date,date,Trading date,"Official end-of-day reference"
+NSE Bhavcopy,Market - Daily EOD,Daily,https://www.nseindia.com/api/,HTTP CSV,symbol,string,NSE symbol,
+NSE Bhavcopy,Market - Daily EOD,Daily,https://www.nseindia.com/api/,HTTP CSV,open,float,Open price,
+NSE Bhavcopy,Market - Daily EOD,Daily,https://www.nseindia.com/api/,HTTP CSV,close,float,Close price,
+TrueData Tick Feed,Market Microstructure,Real-time + historical,tcp://stream.truedata.in,Vendor API,timestamp,datetime,Tick timestamp,"Paid tick/level2 data"
+TrueData Tick Feed,Market Microstructure,Real-time + historical,tcp://stream.truedata.in,Vendor API,last_price,float,Last traded price,
+TrueData Tick Feed,Market Microstructure,Real-time + historical,tcp://stream.truedata.in,Vendor API,bid_price,float,Best bid price,
+TrueData Tick Feed,Market Microstructure,Real-time + historical,tcp://stream.truedata.in,Vendor API,ask_price,float,Best ask price,
+NewsAPI Aggregator,News & Sentiment,Real-time + historical,https://newsapi.org/v2/everything,HTTP JSON,publishedAt,datetime,Publication timestamp,"Aggregator for ET, Moneycontrol, Reuters"
+NewsAPI Aggregator,News & Sentiment,Real-time + historical,https://newsapi.org/v2/everything,HTTP JSON,title,string,Headline text,
+NewsAPI Aggregator,News & Sentiment,Real-time + historical,https://newsapi.org/v2/everything,HTTP JSON,content,string,Article body,
+GDELT Global News,News & Sentiment,15 minutes,http://api.gdeltproject.org/api/v2/,HTTP CSV,SQLDATE,datetime,Event timestamp,
+GDELT Global News,News & Sentiment,15 minutes,http://api.gdeltproject.org/api/v2/,HTTP CSV,AvgTone,float,Sentiment score,
+NSDL FII/DII Flows,Flows,Daily,https://www.fpi.nsdl.co.in/web/Reports/Latest.aspx,HTTP Download,date,date,Report date,
+NSDL FII/DII Flows,Flows,Daily,https://www.fpi.nsdl.co.in/web/Reports/Latest.aspx,HTTP Download,fii_net,float,FII net flow,
+Google Trends,Alternative Data,Hourly/Daily,https://trends.google.com/trends/api/explore,HTTP JSON,value,float,Interest score 0-100,
+SEBI Enforcement Actions,Regulatory,Hourly polling,https://www.sebi.gov.in/sebiweb/home/list/1/7/0/0/Orders,HTTP scrape,title,string,Notice headline,

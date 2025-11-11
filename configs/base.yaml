@@ -1,0 +1,28 @@
+environment: local
+timezone: Asia/Kolkata
+storage:
+  raw_root: /data/quant-india/raw
+  processed_root: /data/quant-india/processed
+  feature_store_root: /data/feature-store
+  checkpoints_root: /data/quant-india/checkpoints
+data_sources:
+  kite:
+    api_key: "<<KITE_API_KEY>>"
+    api_secret: "<<KITE_API_SECRET>>"
+    access_token: "<<KITE_ACCESS_TOKEN>>"
+    root_dir: /data/quant-india/kite
+  nse_api_key: "<<NSE_DATA_API_KEY>>"
+  truedata_api_key: "<<TRUE_DATA_KEY>>"
+feature_store:
+  registry_uri: s3://quant-india/feature-store/registry.json
+  local_cache: /data/feature-store
+  default_backfill_days: 365
+backtest:
+  default_slippage_bps: 5.0
+  brokerage_pct: 0.0003
+  stamp_duty_pct: 0.00015
+  exchange_charges_pct: 0.00002
+executor:
+  dry_run: true
+  max_notional_per_order: 2500000
+  max_unrealized_drawdown_pct: 0.1
