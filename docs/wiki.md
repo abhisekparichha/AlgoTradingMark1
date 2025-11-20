@@ -69,6 +69,16 @@ Comprehensive reference for setting up the environment, running the objective pi
 | End-to-end objective workflow | `python -m quant_india.cli.main run-objective --data-root ... --model-artifact-dir ...` | Manifest, shortlist, selection, trades, equity curve, diagnostics, backtest report |
 | Custom strategy | Write a class in `quant_india/backtest/strategies` implementing `generate_signals`, then call `BacktestEngine` (CLI/notebook) | Controlled entry/exit logic with same cost model |
 
+### 1.4 Helper Scripts (`scripts/`)
+
+| Script | Description | Important env variables |
+| --- | --- | --- |
+| `pull_repo.sh` | Clone the repo or fast-forward an existing checkout (`git fetch/pull`). | `REPO_URL`, `TARGET_DIR` |
+| `install_deps.sh` | Create a virtualenv and install `quant-india` in editable mode with dev extras. | `VENV_PATH` |
+| `fetch_data.sh` | Run `ingest-nse` and `ingest-kite` for configurable symbols/dates. Requires Kite credentials in env/config. | `SYMBOLS`, `START_DATE`, `END_DATE`, `INTRADAY_START`, `INTRADAY_END`, `INTRADAY_INTERVAL` |
+| `run_simulation.sh` | Research/backtest workflow (random sampling, ₹75k cap, optional sim window overrides). | `DATA_ROOT`, `ARTIFACT_DIR`, `SELECTION_MODE`, `ENTRY_THRESHOLD`, `SIM_START`, `SIM_END`, etc. |
+| `run_production.sh` | Production-oriented workflow (signal-rank, higher capital, optional ticker whitelist). | `DATA_ROOT`, `ARTIFACT_DIR`, `MAX_TOTAL_INVEST`, `CUSTOM_TICKERS`, `SIM_START`, `SIM_END` |
+
 ---
 
 ## 2. Objective Pipeline Reference

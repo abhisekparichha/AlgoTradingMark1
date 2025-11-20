@@ -113,6 +113,16 @@ Use the `run-objective` command to stand up a synthetic data repository, shortli
 | **End-to-end objective workflow** | `python -m quant_india.cli.main run-objective --data-root ... --model-artifact-dir ...` | Manifests, shortlist, selection, trades, equity curve, diagnostics, backtest report. |
 | **Custom strategy** | Implement `generate_signals` in `quant_india/backtest/strategies` and wire into CLI or notebook. | Use `BacktestEngine` with realistic cost model (brokerage/stamp duty/slippage). |
 
+### Automation Scripts (under `scripts/`)
+
+| Script | Purpose | Key env knobs |
+| --- | --- | --- |
+| `pull_repo.sh` | Clone or `git pull` the repository onto a local drive. | `REPO_URL`, `TARGET_DIR` |
+| `install_deps.sh` | Create virtualenv and install dependencies (`pip install -e .[dev]`). | `VENV_PATH` |
+| `fetch_data.sh` | Ingest NSE bhavcopy + Zerodha Kite intraday for chosen symbols/dates. | `SYMBOLS`, `START_DATE`, `END_DATE`, `INTRADAY_*` |
+| `run_simulation.sh` | Run research/backtest workflow with lightweight defaults (random sampling, ₹75k cap). | `DATA_ROOT`, `ARTIFACT_DIR`, `SELECTION_MODE`, `ENTRY_THRESHOLD`, etc. |
+| `run_production.sh` | Run production-aligned workflow (signal-rank, higher capital, optional ticker whitelist). | `DATA_ROOT`, `ARTIFACT_DIR`, `MAX_TOTAL_INVEST`, `CUSTOM_TICKERS`, `SIM_*` |
+
 ### Run the full workflow
 
 ```bash
