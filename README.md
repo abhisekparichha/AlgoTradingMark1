@@ -61,6 +61,37 @@ Generate monitoring report:
 python -m quant_india.cli.main report --pnl-path artifacts/backtest.parquet
 ```
 
+## Objective Pipeline (Data ➜ Shortlist ➜ Simulation)
+
+Use the `run-objective` command to stand up a synthetic data repository, shortlist tradable stocks, size positions under ₹100k, and backtest model-driven entries/exits in a single pass.
+
+### Run the full workflow
+
+```bash
+python -m quant_india.cli.main run-objective \
+  --data-root artifacts/data_repo \
+  --model-artifact-dir artifacts/model_outputs \
+  --selection-mode signal-rank \
+  --selection-k 3 \
+  --entry-threshold 0.6 \
+  --stop-pct 0.015
+```
+
+- **Data repository** (`--data-root`): generates `raw/daily`, `raw/intraday`, `meta/`, `corporate_actions/`, and `embeddings/` along with `manifest_<date>.json` capturing row counts, timestamps, and SHA256 hashes.
+- **Artifacts** (`--model-artifact-dir`): `shortlist_<date>.csv`, `selection_<date>.json`, `trades_<date>.csv`, `equity_curve_<date>.csv`, `diagnostics_<date>.json`, `backtest_report_<date>.json`, and `debug_<date>.log`.
+- **Window**: defaults to the last six months; override via `--sim-start`/`--sim-end` (ISO timestamps, assumed UTC if tz-naive).
+- **Constraints**: capital capped by `--max-total-invest` (₹100k by default); lot sizes respect NSE conventions (≥1 lot even for high-priced names).
+
+### Configuration cheat sheet
+
+| Scenario | Recommended switches | Notes |
+| --- | --- | --- |
+| **Testing & trials** | `--selection-mode random-sample`, `--selection-k 2`, `--shortlist-n 10`, `--max-holding-minutes 60`, higher `--entry-threshold` (e.g., 0.8) | Keeps runtime low, stresses robustness across random tickers, and tightens exposure windows. |
+| **Production execution** | Deterministic `signal-rank`, curated `--custom-ticker-list` or larger shortlist, durable paths (e.g., `/data/quant-india/...`), audited `--max-total-invest` | Archive manifest/selection/trades/diagnostics after every run; align thresholds and stop/target levels with live risk policy. |
+| **Feedback & tuning** | Adjust `--entry-threshold`, `--stop-pct`, `--target-pct`, seed variations, and analyze `diagnostics_*.json` | Track IC stability, slippage spikes, and adverse trades to drive fine-tuning across rolling windows. |
+
+See `docs/wiki.md` for a deeper setup guide, environment matrix (trial vs production), and the feedback loop that turns these artifacts into parameter updates.
+
 ## Key Modules
 
 - **Ingestion**: Jobs for Kite REST/WebSocket, NSE bhavcopy & option chain, NewsAPI, TrueData (placeholder). Columnar Parquet storage with IST partitions and quality checks for completeness & price sanity.
