@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
+
 import pandas as pd
 import typer
 
@@ -17,6 +18,7 @@ from quant_india.data import (
 from quant_india.features import FeatureBuilder
 from quant_india.models import assemble_feature_matrix, default_training_pipeline
 from quant_india.monitoring import generate_daily_report
+from quant_india.pipelines import ObjectiveConfig, run_objective_pipeline
 
 app = typer.Typer(add_completion=False, help="Quant India trading system CLI")
 
@@ -132,6 +134,57 @@ def report(
     pnl_df = pd.read_parquet(pnl_path)
     report = generate_daily_report(pnl_df, output_path)
     typer.echo(f"Report written to {output_path}: {report}")
+
+
+def _to_utc(dt: Optional[datetime]) -> Optional[pd.Timestamp]:
+    if dt is None:
+        return None
+    ts = pd.Timestamp(dt)
+    if ts.tzinfo is None:
+        return ts.tz_localize("UTC")
+    return ts.tz_convert("UTC")
+
+
+@app.command("run-objective")
+def run_objective_cli(
+    data_root: Path = typer.Option(Path("artifacts/data_repo"), help="Data root for repository build"),
+    model_artifact_dir: Path = typer.Option(Path("artifacts/model_outputs"), help="Directory for model artifacts"),
+    max_total_invest: float = typer.Option(100_000.0, help="Maximum capital allocation across trades"),
+    shortlist_n: int = typer.Option(30, help="Number of tickers to keep in shortlist"),
+    selection_mode: str = typer.Option("signal-rank", help="Selection mode: SIGNAL-RANK | RANDOM-SAMPLE | USER-DEFINED"),
+    selection_k: int = typer.Option(3, help="Number of tickers to select"),
+    entry_threshold: float = typer.Option(0.6, help="Signal threshold for entries"),
+    exit_threshold: float = typer.Option(-0.2, help="Signal threshold for exits"),
+    target_pct: float = typer.Option(0.03, help="Profit target (fraction)"),
+    stop_pct: float = typer.Option(0.015, help="Stop loss (fraction)"),
+    min_adv_inr: float = typer.Option(10_000_000.0, help="Minimum ADV filter in INR"),
+    min_daily_vol: float = typer.Option(100_000.0, help="Minimum average daily volume filter"),
+    random_seed: int = typer.Option(42, help="Base random seed"),
+    sim_start: Optional[datetime] = typer.Option(None, help="Simulation window start (UTC, default = end-6months)"),
+    sim_end: Optional[datetime] = typer.Option(None, help="Simulation window end (UTC, default = now)"),
+) -> None:
+    """Run the end-to-end objective pipeline: create data repo, shortlist, simulate, and backtest."""
+    configure_logging()
+    config = ObjectiveConfig(
+        data_root=data_root,
+        model_artifact_dir=model_artifact_dir,
+        max_total_invest=max_total_invest,
+        shortlist_n=shortlist_n,
+        selection_mode=selection_mode,
+        selection_k=selection_k,
+        entry_threshold=entry_threshold,
+        exit_threshold=exit_threshold,
+        target_pct=target_pct,
+        stop_pct=stop_pct,
+        min_adv_inr=min_adv_inr,
+        min_daily_vol=min_daily_vol,
+        random_seed=random_seed,
+        sim_start=_to_utc(sim_start),
+        sim_end=_to_utc(sim_end),
+    )
+    artifacts = run_objective_pipeline(config)
+    typer.echo(f"Objective pipeline completed. Artifacts directory: {model_artifact_dir}")
+    typer.echo(artifacts)
 
 
 def main() -> None:
