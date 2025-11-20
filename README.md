@@ -65,6 +65,54 @@ python -m quant_india.cli.main report --pnl-path artifacts/backtest.parquet
 
 Use the `run-objective` command to stand up a synthetic data repository, shortlist tradable stocks, size positions under ₹100k, and backtest model-driven entries/exits in a single pass.
 
+### Installation & Environment Setup
+
+1. Clone and create a virtualenv
+   ```bash
+   git clone <repo-url> && cd quant-india
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -e .[dev]
+   ```
+2. (Optional) Create persistent storage locations
+   ```bash
+   mkdir -p /data/quant-india/raw /data/quant-india/processed artifacts/data_repo artifacts/model_outputs
+   ```
+3. Configure `QUANT_INDIA_CONFIG` or export API keys if you plan to use real feeds (see docs/wiki.md §4).
+
+### Pulling Data
+
+| Method | Command | Notes |
+| --- | --- | --- |
+| **Synthetic repo (for experiments)** | `python -m quant_india.cli.main run-objective --data-root artifacts/data_repo ...` | Builds 5y daily + 1y intraday parquet, holiday calendar, corporate actions, embeddings, manifest. |
+| **Kite historical** | `python -m quant_india.cli.main ingest-kite --symbols RELIANCE --start ... --end ...` | Uses Zerodha API credentials from config/env; stores parquet under `storage.raw_root`. |
+| **NSE bhavcopy** | `python -m quant_india.cli.main ingest-nse --symbols SBIN --start 2024-01-01 --end 2024-01-31` | Daily EOD data (CSV/zip) → partitioned parquet. |
+| **Custom historical parquet** | Place file at `data/your_prices.parquet` with `symbol,timestamp,open,high,low,close,volume`. | Compatible with feature builder/backtester. |
+
+### Creating & Training Models
+
+1. Build features from your price file:
+   ```bash
+   python -m quant_india.cli.main build-features --price-path data/your_prices.parquet
+   ```
+2. Assemble datasets + train ensemble:
+   ```bash
+   python -m quant_india.cli.main train-model \
+     --price-path data/your_prices.parquet \
+     --feature-paths data/features_return_1m.parquet data/features_volume_zscore.parquet \
+     --horizon 5
+   ```
+   - Produces cross-validation metrics and in-sample evaluation.
+   - Extend the pipeline in `quant_india/models` for transformer/XGBoost hybrids as needed.
+
+### Backtesting Options
+
+| Use case | Command | Output |
+| --- | --- | --- |
+| **Classical feature-driven backtest** | `python -m quant_india.cli.main run-backtest --price-path ... --feature-path ...` | PnL parquet + metrics from `MeanReversionStrategy` via `BacktestEngine`. |
+| **End-to-end objective workflow** | `python -m quant_india.cli.main run-objective --data-root ... --model-artifact-dir ...` | Manifests, shortlist, selection, trades, equity curve, diagnostics, backtest report. |
+| **Custom strategy** | Implement `generate_signals` in `quant_india/backtest/strategies` and wire into CLI or notebook. | Use `BacktestEngine` with realistic cost model (brokerage/stamp duty/slippage). |
+
 ### Run the full workflow
 
 ```bash
