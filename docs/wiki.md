@@ -36,6 +36,39 @@ Comprehensive reference for setting up the environment, running the objective pi
    ```
    Confirm that `manifest_<date>.json`, shortlist/selection files, and trade logs are produced.
 
+### 1.1 Data Acquisition Options
+
+| Method | Command | Output location |
+| --- | --- | --- |
+| Synthetic generator (experiments) | `python -m quant_india.cli.main run-objective --data-root artifacts/data_repo ...` | `data_repo/raw/daily|intraday`, `meta/`, `corporate_actions/`, `embeddings/`, plus manifest |
+| Zerodha Kite historical | `python -m quant_india.cli.main ingest-kite --symbols RELIANCE --start 2024-01-01T09:15 --end 2024-01-01T10:15 --interval 1m` | Partitioned parquet under `storage.raw_root` (see config) |
+| NSE Bhavcopy | `python -m quant_india.cli.main ingest-nse --symbols SBIN --start 2024-01-01 --end 2024-01-31` | Daily EOD parquet partitions |
+| Custom parquet | Place file at `data/your_prices.parquet` with `symbol,timestamp,open,high,low,close,volume` | Used directly by feature builder/backtester |
+
+### 1.2 Model Creation & Training
+
+1. Build features
+   ```bash
+   python -m quant_india.cli.main build-features --price-path data/your_prices.parquet
+   ```
+2. Train ensemble (cross-validation + fit)
+   ```bash
+   python -m quant_india.cli.main train-model \
+     --price-path data/your_prices.parquet \
+     --feature-paths data/features_return_1m.parquet data/features_volume_zscore.parquet \
+     --horizon 5
+   ```
+   - Produces CV metrics and evaluation logs on stdout.
+   - Extend `quant_india/models` to register additional estimators/pipelines if required.
+
+### 1.3 Backtesting Choices
+
+| Use case | Command | Outputs |
+| --- | --- | --- |
+| Feature-driven strategy backtest | `python -m quant_india.cli.main run-backtest --price-path ... --feature-path ...` | PnL parquet + metrics via `BacktestEngine` |
+| End-to-end objective workflow | `python -m quant_india.cli.main run-objective --data-root ... --model-artifact-dir ...` | Manifest, shortlist, selection, trades, equity curve, diagnostics, backtest report |
+| Custom strategy | Write a class in `quant_india/backtest/strategies` implementing `generate_signals`, then call `BacktestEngine` (CLI/notebook) | Controlled entry/exit logic with same cost model |
+
 ---
 
 ## 2. Objective Pipeline Reference
